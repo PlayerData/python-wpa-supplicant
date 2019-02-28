@@ -104,7 +104,7 @@ class InterfaceExists(WpaSupplicantException):
 
 class InvalidArgs(WpaSupplicantException):
     """Invalid entries were found in the passed arguments
-    
+
     Possible sources:
         :meth:`~WpaSupplicant.create_interface`
         :meth:`~Interface.scan`
@@ -116,7 +116,7 @@ class InvalidArgs(WpaSupplicantException):
 
 class InterfaceUnknown(WpaSupplicantException):
     """Object pointed by the path doesn't exist or doesn't represent an interface
-    
+
     Possible sources:
         :meth:`~WpaSupplicant.get_interface`
         :meth:`~WpaSupplicant.remove_interface`
@@ -139,6 +139,12 @@ class NetworkUnknown(WpaSupplicantException):
         :meth:`~Interface.select_network`
     """
 
+class InterfaceDisabled(WpaSupplicantException):
+    """The interface is disabled
+
+    Possible sources:
+        :meth:`~Interface.reconnect_network`
+    """
 
 class ReactorNotRunning(WpaSupplicantException):
     """In order to connect to the WpaSupplicantDriver a reactor must be started"""
@@ -152,6 +158,7 @@ _REMOTE_EXCEPTIONS = {
     'fi.w1.wpa_supplicant1.InterfaceUnknown': InterfaceUnknown,
     'fi.w1.wpa_supplicant1.NotConnected': NotConnected,
     'fi.w1.wpa_supplicant1.NetworkUnknown': NetworkUnknown,
+    'fi.w1.wpa_supplicant1.InterfaceDisabled': InterfaceDisabled,
 }
 
 
@@ -440,6 +447,7 @@ class Interface(BaseIface):
         Method('RemoveNetwork', arguments='o'),
         Method('SelectNetwork', arguments='o'),
         Method('Disconnect'),
+        Method('Reconnect'),
         Method('SaveConfig'),
         Signal('ScanDone', 'b'),
         Signal('PropertiesChanged', 'a{sv}')
@@ -525,6 +533,15 @@ class Interface(BaseIface):
         """
 
         self._call_remote('Disconnect')
+
+    def reconnect_network(self):
+        """Attempt reconnection and connect if in disconnected state
+
+        :returns: None
+        :raises InterfaceDisabled: The interface is disabled
+        """
+
+        self._call_remote('Reconnect')
 
     def save_config(self):
         """Save current configuration to disk
